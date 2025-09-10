@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: jenkins-appset
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+          - env: prod
+  template:
+    metadata:
+      name: jenkins-{{env}}
+    spec:
+      project: default
+      source:
+        repoURL: https://3967c98afdf604714c70efabc0f2fb7f-3000.maxwell.assessments.scaler.com/john_doe/jenkins-helm-wrapper.git
+        targetRevision: main
+        path: jenkins-wrapper
+        helm:
+          valueFiles:
+            - overrides/{{env}}.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: jenkins-{{env}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
